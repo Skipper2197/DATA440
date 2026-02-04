@@ -1,1 +1,1 @@
-# DATA440
+# DATA440 - Automation & Workflows (Spring 2026)
