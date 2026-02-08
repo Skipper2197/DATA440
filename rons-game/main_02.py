@@ -1,15 +1,20 @@
 import random
 import itertools
+import json
+
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from typing import Literal
 from numpy.typing import NDArray
+import networkx as nx
+
 
 # Game logic
 
 def simulate_rons_game_fast(seq1: tuple[str, ...], 
-                            seq2: tuple[str, ...]) -> tuple[Literal[1, 2, 0], int, int]:
+                            seq2: tuple[str, ...]
+                            ) -> tuple[Literal[1, 2, 0], int, int, int, int]:
     # Create random deck
     deck = np.random.choice([0,1], size=52)
     s1 = tuple(1 if c == 'R' else 0 for c in seq1)
@@ -58,7 +63,8 @@ def simulate_rons_game_fast(seq1: tuple[str, ...],
 # Tournament simulation
 def run_simulation(seq1: tuple[str, ...], 
                    seq2: tuple[str, ...], 
-                   trials: int=5000) -> tuple[float, float, float, float]:
+                   trials: int=5000
+                   ) -> tuple[float, float, float, float, float, float]:
                    
     p1 = p2 = ties = 0
     score_diff_sum = 0.0
@@ -93,8 +99,10 @@ def run_all_matchups(sequences: list[tuple[str, ...]],
                      game_len_heatmap: NDArray[np.float64],
                      rounds_heatmap: NDArray[np.float64],
                      trials: int) -> None:
+    # Simulate game
     for i, seq1 in enumerate(sequences):
         for j, seq2 in enumerate(sequences):
+            # Exclude the same sequence for each player
             if i == j:
                 win_heatmap[i, j] = np.nan
                 tie_heatmap[i, j] = np.nan
@@ -110,12 +118,47 @@ def run_all_matchups(sequences: list[tuple[str, ...]],
                 rounds_heatmap[i, j] = rounds
     return
 
+def create_data(sequences: list[tuple[str, ...]], 
+                trials: int) -> None:
+    file_path = f'data/heatmaps_{trials}.npz'
+
+    # Heatmap tracking variables
+    win_heatmap = np.zeros((8, 8))
+    tie_heatmap = np.zeros((8, 8))
+    score_diff_heatmap = np.zeros((8, 8))
+    game_len_heatmap = np.zeros((8, 8))
+    rounds_heatmap = np.zeros((8, 8))
+
+    # Run game
+    run_all_matchups(sequences, 
+                     win_heatmap, 
+                     tie_heatmap, 
+                     score_diff_heatmap, 
+                     game_len_heatmap, 
+                     rounds_heatmap, 
+                     trials=trials
+                     )
+
+    np.savez(file_path,
+             win_heatmap=win_heatmap,
+             tie_heatmap=tie_heatmap,
+             score_diff_heatmap=score_diff_heatmap,
+             game_len_heatmap=game_len_heatmap,
+             rounds_heatmap=rounds_heatmap
+             )
+    return
+
+def load_data(heatmap_name: str) -> NDArray[np.float64]:
+    heatmaps = np.load('data/heatmaps.npz')
+    return heatmaps[heatmap_name]
+
 # Plot heatmaps side by side
-def plot_wins_ties(win_heatmap: NDArray[np.float64], 
-                   tie_heatmap: NDArray[np.float64], 
-                   labels: list[str], 
+def plot_wins_ties(labels: list[str], 
                    trials: int) -> None:
-    
+    # Load heatmaps
+    win_heatmap = load_data('win_heatmap')
+    tie_heatmap = load_data('tie_heatmap')
+
     fig, axes = plt.subplots(1, 2, figsize=(18, 7))
 
     # Ignore the top half of the heatmap
@@ -168,11 +211,12 @@ def plot_wins_ties(win_heatmap: NDArray[np.float64],
 
     return
 
-def plot_score_diff(score_diff_heatmap: NDArray[np.float64],
-                    game_len_heatmap: NDArray[np.float64],
-                    rounds_heatmap: NDArray[np.float64], 
-                    labels: list[str], 
+def plot_score_diff(labels: list[str], 
                     trials: int) -> None:
+    # Load heatmpas
+    score_diff_heatmap = load_data('score_diff_heatmap')
+    game_len_heatmap = load_data('game_len_heatmap')
+    rounds_heatmap = load_data('rounds_heatmap')
 
     plt.figure(figsize=(11, 7))
 
@@ -222,6 +266,129 @@ def plot_score_diff(score_diff_heatmap: NDArray[np.float64],
 
     return
 
+def plot_score_diff_per_round(labels: list[str],
+                              trials: int) -> None:
+    # Load heatmaps
+    score_diff_heatmap = load_data('score_diff_heatmap')
+    rounds_heatmap = load_data('rounds_heatmap')
+
+    score_per_round = score_diff_heatmap / rounds_heatmap
+
+    # Ignore top half of heatmap
+    mask = np.triu(np.ones_like(score_per_round, dtype=bool))
+
+    # Make heatmap
+    plt.figure(figsize=(11, 7))
+    sns.heatmap(
+        score_per_round,
+        xticklabels=labels,
+        yticklabels=labels,
+        mask=mask,
+        cmap="coolwarm",
+        center=0,
+        annot=True,
+        fmt="+.2f",
+        cbar_kws={"label": "Avg Score Diff per Round (P2 - P1)"}
+    )
+
+    # Labels
+    plt.title("Average Score Differential per Round")
+    plt.xlabel("Player 2 Sequence")
+    plt.ylabel("Player 1 Sequence")
+    plt.tight_layout()
+
+    # Save into figures folder
+    filename = f"figures/rons_game_score_diff_per_round_trials_{trials}.png"
+    plt.savefig(filename, dpi=300, bbox_inches="tight")
+
+    plt.show()
+
+def plot_win_vs_score_diff(trials: int) -> None:
+
+    # Load heatmaps
+    win_heatmap = load_data('win_heatmap')
+    score_diff_heatmap = load_data('score_diff_heatmap')
+    rounds_heatmap = load_data('rounds_heatmap')
+    
+    # Initialze balnk axes
+    xs, ys, colors = [], [], []
+
+    # Populate blank axes based on heatmap
+    for i in range(8):
+        for j in range(8):
+            if i != j:
+                xs.append(win_heatmap[i, j])
+                ys.append(score_diff_heatmap[i, j])
+                colors.append(rounds_heatmap[i, j])
+
+    # Create figure
+    plt.figure(figsize=(8, 6))
+    scatter = plt.scatter(xs, ys, c=colors, cmap="viridis", alpha=0.75)
+    plt.axhline(0, color="black", linestyle="--", linewidth=1)
+    plt.axvline(0.5, color="black", linestyle="--", linewidth=1)
+
+    # Make labels
+    plt.colorbar(scatter, label="Avg Rounds per Game")
+    plt.xlabel("Player 2 Win Probability")
+    plt.ylabel("Avg Score Differential (P2 − P1)")
+    plt.title("Win Probability vs Score Differential")
+
+    plt.tight_layout()
+
+    # Save into figures folder
+    filename = f"figures/rons_game_win_vs_score_diff_trials_{trials}.png"
+    plt.savefig(filename, dpi=300, bbox_inches="tight")
+
+    plt.show()
+
+def plot_dominance_graph(labels: list[str],
+                              trials: int) -> None:
+    # Load heatmaps
+    win_heatmap = load_data('win_heatmap')
+    score_diff_heatmap = load_data('score_diff_heatmap')
+
+    G = nx.DiGraph()
+
+    for label in labels:
+        G.add_node(label)
+
+    for i in range(8):
+        for j in range(8):
+            if i != j:
+                if win_heatmap[i, j] > 0.5 and score_diff_heatmap[i, j] > 0:
+                    G.add_edge(labels[j], labels[i])
+
+    plt.figure(figsize=(10, 10))
+    pos = nx.circular_layout(G)
+
+    nx.draw(
+        G, pos,
+        with_labels=True,
+        node_size=2000,
+        node_color="lightblue",
+        font_size=10,
+        arrowstyle="->",
+        arrowsize=15
+    )
+
+    plt.title("Strategy Dominance Graph")
+    plt.savefig(
+        f"figures/rons_game_dominance_graph_trials_{trials}.png",
+        dpi=300,
+        bbox_inches="tight"
+    )
+    plt.show()
+
+    return
+
+def initalize_data(sequences: list[tuple[str, ...]], trials: int) -> None:
+    try:
+        create_data(sequences, trials)
+        print(f'Data successfully initialized and saved')
+    except Exception as e:
+        print(e)
+
+
 def main() -> None:
     TRIALS = 100_000
 
@@ -229,17 +396,14 @@ def main() -> None:
     sequences = list(itertools.product(['R', 'B'], repeat=3))
     labels = [''.join(seq) for seq in sequences]
 
-    # Heatmap tracking variables
-    win_heatmap = np.zeros((8, 8))
-    tie_heatmap = np.zeros((8, 8))
-    score_diff_heatmap = np.zeros((8, 8))
-    game_len_heatmap = np.zeros((8,8))
-    rounds_heatmap = np.zeros((8, 8))
+    initalize_data(sequences, TRIALS)
 
-    # Run game and plot results
-    run_all_matchups(sequences, win_heatmap, tie_heatmap, score_diff_heatmap, game_len_heatmap, rounds_heatmap, trials=TRIALS)
-    # plot_wins_ties(win_heatmap, tie_heatmap, labels, trials=TRIALS)
-    plot_score_diff(score_diff_heatmap, game_len_heatmap, rounds_heatmap, labels, trials=TRIALS)
+    # Visualize results
+    # plot_wins_ties(labels, trials=TRIALS)
+    # plot_score_diff(labels, trials=TRIALS)
+    # plot_score_diff_per_round(labels, trials=TRIALS)
+    # plot_win_vs_score_diff(trials=TRIALS)
+    # plot_dominance_graph(labels, trials=TRIALS)
 
     return
 
