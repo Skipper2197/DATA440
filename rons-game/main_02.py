@@ -388,6 +388,14 @@ def initalize_data(sequences: list[tuple[str, ...]], trials: int) -> None:
     except Exception as e:
         print(e)
 
+def visualize_resutls(sequences: list[tuple[str, ...]], trials: int) -> None:
+    # Visualize results
+    # plot_wins_ties(labels, trials=TRIALS)
+    # plot_score_diff(labels, trials=TRIALS)
+    # plot_score_diff_per_round(labels, trials=TRIALS)
+    # plot_win_vs_score_diff(trials=TRIALS)
+    # plot_dominance_graph(labels, trials=TRIALS)
+    return
 
 def main() -> None:
     TRIALS = 100_000
@@ -396,15 +404,10 @@ def main() -> None:
     sequences = list(itertools.product(['R', 'B'], repeat=3))
     labels = [''.join(seq) for seq in sequences]
 
-    initalize_data(sequences, TRIALS)
+    # initalize_data(sequences, TRIALS)
 
-    # Visualize results
-    # plot_wins_ties(labels, trials=TRIALS)
-    # plot_score_diff(labels, trials=TRIALS)
-    # plot_score_diff_per_round(labels, trials=TRIALS)
-    # plot_win_vs_score_diff(trials=TRIALS)
-    # plot_dominance_graph(labels, trials=TRIALS)
-
+    visualize_resutls(sequences, TRIALS)
+    
     return
 
 if __name__ == '__main__':
