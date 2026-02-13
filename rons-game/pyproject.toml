@@ -1,0 +1,14 @@
+[project]
+name = "rons-game"
+version = "0.1.0"
+description = "Ron's Game"
+readme = "README.md"
+requires-python = ">=3.12"
+
+dependencies = [
+    "numpy",
+    "matplotlib",
+    "seaborn",
+    "tqdm",
+    "networkx",
+]

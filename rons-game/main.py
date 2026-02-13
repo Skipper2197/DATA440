@@ -37,3 +37,5 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+# uv run python -m main --trials 100000 --scoring rounds
