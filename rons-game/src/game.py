@@ -1,4 +1,6 @@
 import numpy as np
+import os
+import numpy as np
 from tqdm import trange
 from typing import Literal
 from src.data_types import ScoringMode
@@ -7,9 +9,11 @@ def simulate_rons_game(
     seq1: tuple[str, ...],
     seq2: tuple[str, ...],
     scoring: ScoringMode = "cards",
+    deck: np.ndarray | None = None
 ) -> tuple[Literal[1, 2, 0], int, int, int, int]:
 
-    deck = np.random.choice([0, 1], size=52)
+    # STORE DECK HERE - APPEND TO END OF DECK FILE
+
     s1 = tuple(1 if c == 'R' else 0 for c in seq1)
     s2 = tuple(1 if c == 'R' else 0 for c in seq2)
 
@@ -48,21 +52,26 @@ def simulate_rons_game(
 
 
 def run_simulation(
+    deck_file: str,
     seq1: tuple[str, ...],
     seq2: tuple[str, ...],
-    trials: int,
     scoring: ScoringMode = "cards"
 ) -> tuple[float, float, float, float, float, float]:
 
     p1 = p2 = ties = 0
     score_diff_sum = game_len_sum = rounds_sum = 0.0
 
-    for _ in trange(
+    data = np.load(deck_file)
+    decks = data['decks']
+
+    trials = len(decks)
+
+    for i in trange(
         trials,
         desc=f'{scoring} | {"".join(seq1)} vs {"".join(seq2)}',
         leave=False
     ):
-        result, s1, s2, gl, r = simulate_rons_game(seq1, seq2, scoring)
+        result, s1, s2, gl, r = simulate_rons_game(seq1, seq2, scoring, deck=decks[i])
         score_diff_sum += (s2 - s1)
         game_len_sum += gl
         rounds_sum += r
@@ -74,11 +83,19 @@ def run_simulation(
         else:
             ties += 1
 
-    return (
+    result_array = np.array([
         p1 / trials,
         p2 / trials,
         ties / trials,
         score_diff_sum / trials,
         game_len_sum / trials,
         rounds_sum / trials,
-    )
+    ])
+
+    name = f"{scoring}_{''.join(seq1)}_vs_{''.join(seq2)}"
+    out_path = os.path.join('data/results', f"{name}.npy")
+
+    np.save(out_path, result_array)
+    print(f"Saved results → {out_path}")
+
+    return tuple(result_array)
