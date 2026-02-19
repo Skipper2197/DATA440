@@ -29,5 +29,3 @@ uv run python -m main --trials 100000 --scoring rounds
 
 # TODO
 - Be able to add 10 or 50 decks to the simulation
-- Fix dominance graph plotting
-- Add comments for everything

@@ -4,7 +4,7 @@ import seaborn as sns
 import networkx as nx
 import numpy as np
 
-FIG_DIR = "figures"
+FIG_DIR = 'figures'
 os.makedirs(FIG_DIR, exist_ok=True)
 
 
@@ -12,12 +12,16 @@ os.makedirs(FIG_DIR, exist_ok=True)
 # Helpers
 # -------------------------
 
-def _matrix_from_data(data: dict, labels: list[str], value_fn):
-    """
+def _matrix_from_data(
+        data: dict, 
+        labels: list[str], 
+        value_fn
+    ) -> np.ndarray[tuple[int, int], np.any]:
+    '''
     Build NxN matrix from dict[(seq1, seq2)] -> tuple,
     applying value_fn to each tuple to extract desired value.
     Row = seq1, Column = seq2
-    """
+    '''
     n = len(labels)
     mat = np.full((n, n), np.nan)
     for i, s1 in enumerate(labels):
@@ -29,7 +33,9 @@ def _matrix_from_data(data: dict, labels: list[str], value_fn):
 
 
 def lower_triangle_mask(mat):
-    """Return mask for lower triangle including diagonal"""
+    '''
+    Return mask for lower triangle including diagonal
+    '''
     return np.tri(mat.shape[0], k=0, dtype=bool)
 
 
@@ -148,8 +154,8 @@ def plot_dominance_graph(data: dict, labels: list[str], trials: int, scoring: st
             if i != j:
                 p1_win = data[(s1, s2)][0]
                 score_diff = data[(s1, s2)][3]
-                if p1_win > 0.5 and score_diff > 0:
-                    G.add_edge(s2, s1)  # loser -> winner
+                if p1_win > 0.5 and score_diff < 0:
+                    G.add_edge(s1, s2)  # loser -> winner
 
     plt.figure(figsize=(10, 10))
     nx.draw(
@@ -164,16 +170,66 @@ def plot_dominance_graph(data: dict, labels: list[str], trials: int, scoring: st
     plt.title(f'Strategy Dominance Graph ({scoring}, {trials})')
     os.makedirs(os.path.join(FIG_DIR, scoring), exist_ok=True)
     plt.savefig(f'{FIG_DIR}/{scoring}/rons_dominance_graph_{trials}.png', dpi=300, bbox_inches='tight')
-    plt.show()
+#     plt.show()
+
+# def plot_dominance_graph(data: dict, labels: list[str], trials: int, scoring: str) -> None:
+#     import networkx as nx
+#     import matplotlib.pyplot as plt
+#     import os
+
+#     G = nx.DiGraph()
+#     G.add_nodes_from(labels)
+
+#     for i, s1 in enumerate(labels):
+#         for j, s2 in enumerate(labels):
+#             if i != j:
+#                 p1_win = data[(s1, s2)][0]
+#                 score_diff = data[(s1, s2)][3]
+#                 if p1_win > 0.5 and score_diff < 0:
+#                     G.add_edge(s2, s1)  # loser -> winner
+
+#     pos = nx.circular_layout(G)
+
+#     plt.figure(figsize=(10, 10))
+
+#     # Nodes
+#     nx.draw_networkx_nodes(
+#         G, pos,
+#         node_size=2000,
+#         node_color='lightblue'
+#     )
+
+#     # Labels
+#     nx.draw_networkx_labels(G, pos)
+
+#     nx.draw_networkx_edges(
+#         G, pos,
+#         arrows=True,
+#         arrowstyle='-|>',
+#         arrowsize=30,
+#         width=2,
+#         edge_color='black'
+#     )
+
+#     plt.title(f'Strategy Dominance Graph ({scoring}, {trials:,})')
+#     os.makedirs(os.path.join(FIG_DIR, scoring), exist_ok=True)
+#     plt.savefig(
+#         f'{FIG_DIR}/{scoring}/rons_dominance_graph_{trials}.png',
+#         dpi=300,
+#         bbox_inches='tight'
+#     )
+
+#     plt.show()
+
 
 
 # -------------------------
 # Win Probability Heatmap
 # -------------------------
 def plot_win_probability(data: dict, labels: list[str], trials: int, scoring: str) -> None:
-    """
+    '''
     Rows = seq1 (Player 1), Columns = seq2 (Player 2)
-    """
+    '''
     win_prob = _matrix_from_data(data, labels, lambda v: v[0]) # P1 win prob
     tie_prob = _matrix_from_data(data, labels, lambda v: v[2])
 
@@ -185,29 +241,29 @@ def plot_win_probability(data: dict, labels: list[str], trials: int, scoring: st
     for i in range(len(labels)):
         for j in range(len(labels)):
             if i == j or np.isnan(win_prob[i, j]):
-                annot[i, j] = ""
+                annot[i, j] = ''
             else:
-                annot[i, j] = f"{win_prob[i,j]*100:.1f}%\n({tie_prob[i,j]*100:.1f}%)"
+                annot[i, j] = f'{win_prob[i,j]*100:.1f}%\n({tie_prob[i,j]*100:.1f}%)'
 
     plt.figure(figsize=(11, 7))
     sns.heatmap(
         win_prob,
         mask=mask,
         annot=annot,
-        fmt="",
-        cmap="coolwarm",
+        fmt='',
+        cmap='coolwarm',
         center=0.5,
         xticklabels=labels,
         yticklabels=labels,
-        cbar_kws={"label": "Player 1 Win Probability"},
+        cbar_kws={'label': 'Player 1 Win Probability'},
     )
 
-    plt.title(f"Player 2 Win Probability Heatmap ({scoring}, {trials:,} trials)")
-    plt.xlabel("Player 2 Sequence")
-    plt.ylabel("Player 1 Sequence")
+    plt.title(f'Player 2 Win Probability Heatmap ({scoring}, {trials:,} trials)')
+    plt.xlabel('Player 2 Sequence')
+    plt.ylabel('Player 1 Sequence')
 
     plt.tight_layout()
     os.makedirs(os.path.join(FIG_DIR, scoring), exist_ok=True)
-    plt.savefig(f"{FIG_DIR}/{scoring}/rons_win_probability_{trials}.png", dpi=300, bbox_inches='tight')
+    plt.savefig(f'{FIG_DIR}/{scoring}/rons_win_probability_{trials}.png', dpi=300, bbox_inches='tight')
     plt.show()
 
