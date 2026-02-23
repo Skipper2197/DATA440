@@ -170,7 +170,7 @@ def plot_dominance_graph(data: dict, labels: list[str], trials: int, scoring: st
     plt.title(f'Strategy Dominance Graph ({scoring}, {trials})')
     os.makedirs(os.path.join(FIG_DIR, scoring), exist_ok=True)
     plt.savefig(f'{FIG_DIR}/{scoring}/rons_dominance_graph_{trials}.png', dpi=300, bbox_inches='tight')
-#     plt.show()
+    plt.show()
 
 # def plot_dominance_graph(data: dict, labels: list[str], trials: int, scoring: str) -> None:
 #     import networkx as nx

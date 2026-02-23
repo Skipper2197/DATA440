@@ -15,6 +15,7 @@ from src.viz import (
 def main() -> None:
     ensure_project_dirs()
     args = parse_args()
+    DEBUG = args.debug
 
     # --- ALL POSSIBLE SEQUENCES ---
     sequences = list(itertools.product(['R', 'B'], repeat=3))
@@ -40,12 +41,18 @@ def main() -> None:
         else:
             # Otherwise generate the decks
             print(f'Generating {args.trials} random decks')
-            generate_and_save_decks(args.trials, overwrite=True)
+            generate_and_save_decks(args.trials, regen=True)
             decks = load_decks(args.trials)
 
         # Score the raw decks for the number of trials
         print(f'Running all matchups for {args.trials} trials')
         data = run_all_matchups_from_decks(decks, sequences, args.scoring)
+        if DEBUG:
+            print('Debug output:')
+            print(f'Decks: {decks}')
+            print('Scored Dictionary - p1_win, p2_win, tie, score_diff, game_length, round_sum:')
+            for key, value in data.items():
+                print(f'{key}: {value}')
         save_data(data, args.trials, args.scoring)
 
     # --- OPTIONAL VISUALIZATION ---

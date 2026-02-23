@@ -31,4 +31,10 @@ def parse_args() -> argparse.Namespace:
         help='Scoring method: cards or rounds',
     )
 
+    parser.add_argument(
+        '--debug',
+        action='store_true',
+        help='Print generated decks and scored matchup dictionary. Use for small number of trials'
+    )
+
     return parser.parse_args()
