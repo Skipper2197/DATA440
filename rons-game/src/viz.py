@@ -36,12 +36,12 @@ def lower_triangle_mask(mat):
 # -------------------------
 # Score Difference Heatmap
 # -------------------------
-def plot_score_diff(data: dict, labels: list[str], trials: int, scoring: str) -> None:
+def plot_score_diff(ax, data: dict, labels: list[str], trials: int, scoring: str) -> None:
     score_diff = _matrix_from_data(data, labels, lambda v: v[3])
     game_len = _matrix_from_data(data, labels, lambda v: v[4])
     rounds = _matrix_from_data(data, labels, lambda v: v[5])
 
-    mask = lower_triangle_mask(score_diff)
+    mask = lower_triangle_mask(score_diff).T
     annot = np.empty(score_diff.shape, dtype=object)
 
     for i in range(len(labels)):
@@ -50,7 +50,7 @@ def plot_score_diff(data: dict, labels: list[str], trials: int, scoring: str) ->
                 f'{score_diff[i,j]:+.1f}\n({game_len[i,j]:.1f} | {rounds[i,j]:.1f})'
             )
 
-    plt.figure(figsize=(11, 7))
+    ax.clear()
     sns.heatmap(
         score_diff,
         mask=mask,
@@ -61,27 +61,27 @@ def plot_score_diff(data: dict, labels: list[str], trials: int, scoring: str) ->
         xticklabels=labels,
         yticklabels=labels,
         cbar_kws={'label': 'Avg Score Diff (seq1 - seq2)'},
+        ax=ax
     )
 
-    plt.title('Score Differential\n(Game Length | Rounds)')
-    plt.xlabel('Player 2 Sequence')
-    plt.ylabel('Player 1 Sequence')
-    os.makedirs(os.path.join(FIG_DIR, scoring), exist_ok=True)
-    plt.savefig(f'{FIG_DIR}/{scoring}/rons_score_diff_{trials}.png', dpi=300, bbox_inches='tight')
-    plt.show()
+    ax.set_title('Score Differential\n(Game Length | Rounds)')
+    ax.set_xlabel('Player 2 Sequence')
+    ax.set_ylabel('Player 1 Sequence')
+    # os.makedirs(os.path.join(FIG_DIR, scoring), exist_ok=True)
+    # plt.savefig(f'{FIG_DIR}/{scoring}/rons_score_diff_{trials}.png', dpi=300, bbox_inches='tight')
 
 
 # -------------------------
 # Score Difference per Round
 # -------------------------
-def plot_score_diff_per_round(data: dict, labels: list[str], trials: int, scoring: str) -> None:
+def plot_score_diff_per_round(ax, data: dict, labels: list[str], trials: int, scoring: str) -> None:
     score_diff = _matrix_from_data(data, labels, lambda v: v[3])
     rounds = _matrix_from_data(data, labels, lambda v: v[5])
     score_per_round = score_diff / np.maximum(rounds, 1e-9)
 
-    mask = lower_triangle_mask(score_per_round)
+    mask = lower_triangle_mask(score_per_round).T
 
-    plt.figure(figsize=(11, 7))
+    ax.clear()
     sns.heatmap(
         score_per_round,
         mask=mask,
@@ -92,20 +92,20 @@ def plot_score_diff_per_round(data: dict, labels: list[str], trials: int, scorin
         xticklabels=labels,
         yticklabels=labels,
         cbar_kws={'label': 'Score Diff per Round (seq1 - seq2)'},
+        ax=ax
     )
 
-    plt.title('Average Score Differential per Round')
-    plt.xlabel('Player 2 Sequence')
-    plt.ylabel('Player 1 Sequence')
-    os.makedirs(os.path.join(FIG_DIR, scoring), exist_ok=True)
-    plt.savefig(f'{FIG_DIR}/{scoring}/rons_score_diff_per_round_{trials}.png', dpi=300, bbox_inches='tight')
-    plt.show()
+    ax.set_title('Average Score Differential per Round')
+    ax.set_xlabel('Player 2 Sequence')
+    ax.set_ylabel('Player 1 Sequence')
+    # os.makedirs(os.path.join(FIG_DIR, scoring), exist_ok=True)
+    # plt.savefig(f'{FIG_DIR}/{scoring}/rons_score_diff_per_round_{trials}.png', dpi=300, bbox_inches='tight')
 
 
 # -------------------------
 # Win Probability vs Score Diff
 # -------------------------
-def plot_win_vs_score_diff(data: dict, trials: int, scoring: str) -> None:
+def plot_win_vs_score_diff(ax, data: dict, trials: int, scoring: str) -> None:
     labels = sorted(list(set(k[0] for k in data.keys())))
     xs, ys, colors = [], [], []
 
@@ -121,25 +121,24 @@ def plot_win_vs_score_diff(data: dict, trials: int, scoring: str) -> None:
                 ys.append(score_diff)
                 colors.append(rounds)
 
-    plt.figure(figsize=(8, 6))
-    scatter = plt.scatter(xs, ys, c=colors, cmap='viridis', alpha=0.75)
-    plt.axhline(0, linestyle='--', color='black')
-    plt.axvline(0.5, linestyle='--', color='black')
+    ax.clear()
+    scatter = ax.scatter(xs, ys, c=colors, cmap='viridis', alpha=0.75)
+    ax.axhline(0, linestyle='--', color='black')
+    ax.axvline(0.5, linestyle='--', color='black')
 
-    plt.colorbar(scatter, label='Avg Rounds')
-    plt.xlabel('Player 1 Win Probability')
-    plt.ylabel('Avg Score Differential (seq1 - seq2)')
-    plt.title(f'Win Probability vs Score Differential ({scoring}, {trials:,})')
-    plt.tight_layout()
-    os.makedirs(os.path.join(FIG_DIR, scoring), exist_ok=True)
-    plt.savefig(f'{FIG_DIR}/{scoring}/rons_win_vs_score_diff_{trials}.png', dpi=300, bbox_inches='tight')
-    plt.show()
+    ax.set_xlabel('Player 1 Win Probability')
+    ax.set_ylabel('Avg Score Differential (seq1 - seq2)')
+    ax.set_title(f'Win Probability vs Score Differential ({scoring}, {trials:,})')
+    ax.figure.colorbar(scatter, ax=ax, label='Avg Rounds')
+    # plt.tight_layout()
+    # os.makedirs(os.path.join(FIG_DIR, scoring), exist_ok=True)
+    # plt.savefig(f'{FIG_DIR}/{scoring}/rons_win_vs_score_diff_{trials}.png', dpi=300, bbox_inches='tight')
 
 
 # -------------------------
 # Dominance Graph
 # -------------------------
-def plot_dominance_graph(data: dict, labels: list[str], trials: int, scoring: str) -> None:
+def plot_dominance_graph(ax, data: dict, labels: list[str], trials: int, scoring: str) -> None:
     G = nx.DiGraph()
     G.add_nodes_from(labels)
 
@@ -148,10 +147,10 @@ def plot_dominance_graph(data: dict, labels: list[str], trials: int, scoring: st
             if i != j:
                 p1_win = data[(s1, s2)][0]
                 score_diff = data[(s1, s2)][3]
-                if p1_win > 0.5 and score_diff > 0:
-                    G.add_edge(s2, s1)  # loser -> winner
+                if p1_win > 0.5 and score_diff < 0:
+                    G.add_edge(s1, s2)  # winner -> loser
 
-    plt.figure(figsize=(10, 10))
+    ax.clear()
     nx.draw(
         G,
         nx.circular_layout(G),
@@ -159,18 +158,18 @@ def plot_dominance_graph(data: dict, labels: list[str], trials: int, scoring: st
         node_size=2000,
         node_color='lightblue',
         arrowsize=15,
+        ax=ax
     )
 
-    plt.title(f'Strategy Dominance Graph ({scoring}, {trials})')
-    os.makedirs(os.path.join(FIG_DIR, scoring), exist_ok=True)
-    plt.savefig(f'{FIG_DIR}/{scoring}/rons_dominance_graph_{trials}.png', dpi=300, bbox_inches='tight')
-    plt.show()
+    ax.set_title(f'Strategy Dominance Graph ({scoring}, {trials})')
+    # os.makedirs(os.path.join(FIG_DIR, scoring), exist_ok=True)
+    # plt.savefig(f'{FIG_DIR}/{scoring}/rons_dominance_graph_{trials}.png', dpi=300, bbox_inches='tight')
 
 
 # -------------------------
 # Win Probability Heatmap
 # -------------------------
-def plot_win_probability(data: dict, labels: list[str], trials: int, scoring: str) -> None:
+def plot_win_probability(ax, data: dict, labels: list[str], trials: int, scoring: str) -> None:
     """
     Rows = seq1 (Player 1), Columns = seq2 (Player 2)
     """
@@ -189,7 +188,7 @@ def plot_win_probability(data: dict, labels: list[str], trials: int, scoring: st
             else:
                 annot[i, j] = f"{win_prob[i,j]*100:.1f}%\n({tie_prob[i,j]*100:.1f}%)"
 
-    plt.figure(figsize=(11, 7))
+    ax.clear()
     sns.heatmap(
         win_prob,
         mask=mask,
@@ -200,14 +199,15 @@ def plot_win_probability(data: dict, labels: list[str], trials: int, scoring: st
         xticklabels=labels,
         yticklabels=labels,
         cbar_kws={"label": "Player 1 Win Probability"},
+        ax=ax
     )
 
-    plt.title(f"Player 2 Win Probability Heatmap ({scoring}, {trials:,} trials)")
-    plt.xlabel("Player 2 Sequence")
-    plt.ylabel("Player 1 Sequence")
+    ax.set_title(f"Player 2 Win Probability Heatmap ({scoring}, {trials:,} trials)")
+    ax.set_xlabel("Player 2 Sequence")
+    ax.set_ylabel("Player 1 Sequence")
 
-    plt.tight_layout()
-    os.makedirs(os.path.join(FIG_DIR, scoring), exist_ok=True)
-    plt.savefig(f"{FIG_DIR}/{scoring}/rons_win_probability_{trials}.png", dpi=300, bbox_inches='tight')
-    plt.show()
+    #plt.tight_layout()
+    #os.makedirs(os.path.join(FIG_DIR, scoring), exist_ok=True)
+    #plt.savefig(f"{FIG_DIR}/{scoring}/rons_win_probability_{trials}.png", dpi=300, bbox_inches='tight')
+    #plt.show()
 

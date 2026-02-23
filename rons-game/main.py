@@ -1,4 +1,8 @@
 import itertools
+import matplotlib.pyplot as plt
+from matplotlib.widgets import Button           # for the clickable arrows
+from functools import partial
+
 from src.cli import parse_args
 from src.generate_decks import generate_and_save_decks
 from src.utils import ensure_project_dirs
@@ -41,17 +45,75 @@ def main() -> None:
         data = run_all_matchups_from_decks(decks, sequences, args.scoring)
         save_data(data, args.trials, args.scoring)
 
-    # --- OPTIONAL VISUALIZATION ---
+    # --- OPTIONAL VISUALIZATIONS ---
     if args.no_plots:
         print("Skipping plot generation (--no-plots specified)")
     else:
-        # plot_score_diff(data, labels, args.trials, args.scoring)
-        # plot_score_diff_per_round(data, labels, args.trials, args.scoring)
-        plot_win_vs_score_diff(data, args.trials, args.scoring)
-        plot_dominance_graph(data, labels, args.trials, args.scoring)
-        plot_win_probability(data, labels, args.trials, args.scoring)
+        plots = [
+            partial(plot_score_diff, data=data, labels=labels, trials=args.trials, scoring=args.scoring),
+            partial(plot_score_diff_per_round, data=data, labels=labels, trials=args.trials, scoring=args.scoring),
+            partial(plot_win_vs_score_diff, data=data, trials=args.trials, scoring=args.scoring),
+            partial(plot_win_probability, data=data, labels=labels, trials=args.trials, scoring=args.scoring),
+            partial(plot_dominance_graph, data=data, labels=labels, trials=args.trials, scoring=args.scoring)
+        ]
+        
+        fig = plt.figure(figsize=(10,8))
+        index = 0
+
+        # used in update_plot():
+        # initialized here to prevent garbage collection
+        gallery_prev = None
+        gallery_next = None
+
+        def update_plot(): # draws the plot respective to current slider location
+            nonlocal gallery_next, gallery_prev
+
+            fig.clf()    # clears the previous figure
+
+            # creates the space for plots, then places them
+            ax = fig.add_axes([0.1, 0.25, 0.85, 0.65])
+            plots[index](ax=ax)
+
+            # --- CLICKABLE ARROWS ---
+
+            # placements and dimensions
+            axprev = plt.axes([0.25, 0.08, 0.1, 0.065])
+            axnext = plt.axes([0.60, 0.08, 0.1, 0.065])
+
+            # adding Button objects according to the specs,
+            # allowing for clickable functionality
+            gallery_prev = Button(axprev, '<- Prev')
+            gallery_next = Button(axnext, 'Next ->')
+
+            # when clicked, create new plots
+            # this is identically similar to pressing the arrow keys
+            gallery_prev.on_clicked(prev_plot)
+            gallery_next.on_clicked(next_plot)
+
+            fig.canvas.draw_idle()
+
+        def next_plot(event=None):
+            nonlocal index
+            index = (index + 1) % len(plots)
+            update_plot()
+
+        def prev_plot(event=None):
+            nonlocal index
+            index = (index - 1) % len(plots)
+            update_plot()
+
+        def on_key(event): # actual slider controls
+            nonlocal index
+            if event.key == 'right':
+                next_plot()
+            elif event.key == 'left':
+                prev_plot()
+        
+        fig.canvas.mpl_connect('key_press_event', on_key)
+
+        update_plot()
+        plt.show()
 
 
 if __name__ == "__main__":
     main()
-
