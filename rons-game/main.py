@@ -11,6 +11,7 @@ from src.viz import (
     plot_win_vs_score_diff,
     plot_dominance_graph,
     plot_win_probability,
+    plot_penney_graph,
 )
 
 def main() -> None:
@@ -74,8 +75,9 @@ def main() -> None:
         print(f'Total execution time: {time.time() - start_total:.2f}s')
     else:
         print(f'Total execution time: {time.time() - start_total:.2f}s')
-        plot_dominance_graph(data, labels, args.trials, args.scoring)
-        plot_win_probability(data, labels, args.trials, args.scoring)
+        # plot_dominance_graph(data, labels, args.trials, args.scoring)
+        # plot_win_probability(data, labels, args.trials, args.scoring)
+        plot_penney_graph(data, args.trials, args.scoring)
 
 if __name__ == '__main__':
     main()

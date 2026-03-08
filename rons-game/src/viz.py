@@ -172,55 +172,91 @@ def plot_dominance_graph(data: dict, labels: list[str], trials: int, scoring: st
     plt.savefig(f'{FIG_DIR}/{scoring}/rons_dominance_graph_{trials}.png', dpi=300, bbox_inches='tight')
     plt.show()
 
-# def plot_dominance_graph(data: dict, labels: list[str], trials: int, scoring: str) -> None:
-#     import networkx as nx
-#     import matplotlib.pyplot as plt
-#     import os
+# -------------------------
+# Penney-Style Dominance Graph (Best Response)
+# -------------------------
 
-#     G = nx.DiGraph()
-#     G.add_nodes_from(labels)
+import networkx as nx
+import matplotlib.pyplot as plt
+import numpy as np
 
-#     for i, s1 in enumerate(labels):
-#         for j, s2 in enumerate(labels):
-#             if i != j:
-#                 p1_win = data[(s1, s2)][0]
-#                 score_diff = data[(s1, s2)][3]
-#                 if p1_win > 0.5 and score_diff < 0:
-#                     G.add_edge(s2, s1)  # loser -> winner
+def plot_penney_graph(data:dict, trials:int, scoring:str):
 
-#     pos = nx.circular_layout(G)
+    sequences = sorted(list(set([k[0] for k in data.keys()])))
+    
+    # Find best response to each sequence
+    best_response = {}
 
-#     plt.figure(figsize=(10, 10))
+    for p1 in sequences:
+        best_seq = None
+        best_prob = -1
 
-#     # Nodes
-#     nx.draw_networkx_nodes(
-#         G, pos,
-#         node_size=2000,
-#         node_color='lightblue'
-#     )
+        for p2 in sequences:
+            if p1 == p2:
+                continue
 
-#     # Labels
-#     nx.draw_networkx_labels(G, pos)
+            p1_win, p2_win, *_ = data[(p1, p2)]
 
-#     nx.draw_networkx_edges(
-#         G, pos,
-#         arrows=True,
-#         arrowstyle='-|>',
-#         arrowsize=30,
-#         width=2,
-#         edge_color='black'
-#     )
+            if np.isnan(p2_win):
+                continue
 
-#     plt.title(f'Strategy Dominance Graph ({scoring}, {trials:,})')
-#     os.makedirs(os.path.join(FIG_DIR, scoring), exist_ok=True)
-#     plt.savefig(
-#         f'{FIG_DIR}/{scoring}/rons_dominance_graph_{trials}.png',
-#         dpi=300,
-#         bbox_inches='tight'
-#     )
+            if p2_win > best_prob:
+                best_prob = p2_win
+                best_seq = p2
 
-#     plt.show()
+        best_response[p1] = (best_seq, best_prob)
 
+    # Build graph
+    G = nx.DiGraph()
+
+    for seq in sequences:
+        G.add_node(seq)
+
+    for p1, (p2, prob) in best_response.items():
+        G.add_edge(p1, p2, weight=prob)
+
+    # Fixed circular layout
+    pos = nx.circular_layout(G)
+
+    plt.figure(figsize=(8,8))
+
+    nx.draw_networkx_nodes(
+        G, pos,
+        node_size=3000,
+        node_color='lightblue',
+        edgecolors='black'
+    )
+
+    nx.draw_networkx_labels(
+        G, pos,
+        font_size=12,
+        font_weight='bold'
+    )
+
+    nx.draw_networkx_edges(
+        G, pos,
+        arrows=True,
+        arrowstyle='->',
+        arrowsize=20,
+        width=2,
+        min_target_margin=30
+    )
+
+    # Edge labels
+    edge_labels = {(u,v): f'{d['weight']:.2f}' for u,v,d in G.edges(data=True)}
+
+    nx.draw_networkx_edge_labels(
+        G, pos,
+        edge_labels=edge_labels,
+        font_size=10,
+        label_pos=0.6
+    )
+
+    plt.title('Penney\'s Game - Best Counter Strategy')
+    plt.axis('off')
+    plt.tight_layout()
+    plt.savefig(f'{FIG_DIR}/{scoring}/rons_best_response_{trials}.png', dpi=300, bbox_inches='tight')
+    plt.show()
 
 
 # -------------------------
