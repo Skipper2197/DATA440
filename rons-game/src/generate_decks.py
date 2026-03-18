@@ -36,4 +36,16 @@ def generate_and_save_decks(
     return
 
 def generate_decks(trials: int):
-    return np.random.randint(0,2, size=(trials, 52), dtype=np.uint8)
+    base_deck = np.array([0]*26 + [1]*26, dtype=np.uint8)
+    
+    # 2. Initialize an empty array to hold all decks
+    decks = np.empty((trials, 52), dtype=np.uint8)
+    
+    # 3. Shuffle a fresh copy for every trial
+    for i in range(trials):
+        # We use a copy so we don't exhaust the base_deck
+        shuffled = base_deck.copy()
+        np.random.shuffle(shuffled)
+        decks[i] = shuffled
+        
+    return decks

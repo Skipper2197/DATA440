@@ -27,6 +27,48 @@ def simulate_rons_game(
     :rtype: tuple[Literal[1, 2, 0], int, int, int, int]
     '''
 
+    # s1 = tuple(1 if c == 'R' else 0 for c in seq1)
+    # s2 = tuple(1 if c == 'R' else 0 for c in seq2)
+
+    # score1 = score2 = 0
+    # i = 0
+
+    # while i <= 49:
+    #     # We look for a match starting from current position 'i'
+    #     found_round_winner = False
+        
+    #     # We must deal at least 3 cards to check a window
+    #     for j in range(i + 2, 52):
+    #         # Check the window ending at card 'j'
+    #         window = tuple(deck[j-2 : j+1])
+            
+    #         p1_hit = (window == s1)
+    #         p2_hit = (window == s2)
+            
+    #         if p1_hit or p2_hit:
+    #             if p1_hit and p2_hit:
+    #                 score1 += 1
+    #                 score2 += 1
+    #             elif p1_hit:
+    #                 score1 += 1
+    #             elif p2_hit:
+    #                 score2 += 1
+                
+    #             # DISCARD RULE: Move 'i' to the card AFTER this win
+    #             i = j + 1
+    #             found_round_winner = True
+    #             break
+        
+    #     if not found_round_winner:
+    #         break # No more cards left to form a 3-card sequence
+
+    # # WINNER CALCULATION
+    # if score1 > score2:
+    #     return 1, int(score1), int(score2), 52, 0
+    # if score2 > score1:
+    #     return 2, int(score1), int(score2), 52, 0
+    # return 0, int(score1), int(score2), 52, 0 # TIE (Draw)
+
     s1 = tuple(1 if c == 'R' else 0 for c in seq1)
     s2 = tuple(1 if c == 'R' else 0 for c in seq2)
 
@@ -56,79 +98,29 @@ def simulate_rons_game(
                     score2 += cards if scoring == 'cards' else 1
                     num_rounds += 1
                     break
+            # if len(window) == 3:
+            #     t = tuple(window)
+            #     p1_hit = (t == s1)
+            #     p2_hit = (t == s2)
+
+            #     if p1_hit and p2_hit:
+            #         # Decide how to handle simultaneous hits. 
+            #         # Usually, you split the point or it's a draw for that round.
+            #         score1 += 0.5 
+            #         score2 += 0.5
+            #         num_rounds += 1
+            #         break 
+            #     elif p1_hit:
+            #         score1 += cards if scoring == 'cards' else 1
+            #         num_rounds += 1
+            #         break
+            #     elif p2_hit:
+            #         score2 += cards if scoring == 'cards' else 1
+            #         num_rounds += 1
+            #         break
 
         if 52 - i < 3:
             break
 
     winner = 1 if score1 > score2 else 2 if score2 > score1 else 0
     return winner, score1, score2, i, num_rounds
-
-
-def run_simulation(
-        deck_file: str,
-        seq1: tuple[str, ...],
-        seq2: tuple[str, ...],
-        scoring: ScoringMode = 'cards'
-    ) -> tuple[float, float, float, float, float, float]:
-
-    '''
-    Run Ron's Game for the total number of trials
-    
-    :param deck_file: Path to all the raw decks already generated
-    :type deck_file: str
-    :param seq1: Player 1 sequence of colors
-    :type seq1: tuple[str, ...]
-    :param seq2: Player 2 sequence of colors
-    :type seq2: tuple[str, ...]
-    :param scoring: cards or rounds
-    :type scoring: ScoringMode
-    :return: A tuple of all statistics for that matchup
-    :rtype: tuple[float, float, float, float, float, float]
-    '''
-
-    p1 = p2 = ties = 0
-    score_diff_sum = game_len_sum = rounds_sum = 0.0
-
-    data = np.load(deck_file)
-    decks = data['decks']
-
-    trials = len(decks)
-
-    # For the total number of trials
-    for i in trange(
-        trials,
-        desc=f'{scoring} | {''.join(seq1)} vs {''.join(seq2)}',
-        leave=False
-    ):
-        # Simluate one game and add the statistics to the tracker variables above
-        result, s1, s2, gl, r = simulate_rons_game(seq1, seq2, scoring, deck=decks[i])
-        score_diff_sum += (s2 - s1)
-        game_len_sum += gl
-        rounds_sum += r
-
-        if result == 1:
-            p1 += 1
-        elif result == 2:
-            p2 += 1
-        else:
-            ties += 1
-
-    # Create an array that averages by the number of trials
-    result_array = np.array([
-        p1 / trials,
-        p2 / trials,
-        ties / trials,
-        score_diff_sum / trials,
-        game_len_sum / trials,
-        rounds_sum / trials,
-    ])
-
-    # Save the results
-    name = f'{scoring}_{''.join(seq1)}_vs_{''.join(seq2)}'
-    out_path = os.path.join('data/results', f'{name}.npy')
-
-    np.save(out_path, result_array)
-    print(f'Saved results → {out_path}')
-
-    # Turn the array into a tuple
-    return tuple(result_array)

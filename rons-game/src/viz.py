@@ -29,7 +29,8 @@ def _matrix_from_data(
             key = (s1, s2)
             if key in data:
                 mat[i, j] = value_fn(data[key])
-    return mat.T
+    # print(mat)
+    return mat
 
 
 def lower_triangle_mask(mat):
@@ -267,11 +268,11 @@ def plot_win_probability(ax, data: dict, labels: list[str], trials: int, scoring
     '''
     Rows = seq1 (Player 1), Columns = seq2 (Player 2)
     '''
-    win_prob = _matrix_from_data(data, labels, lambda v: v[0]/v[6]) # P1 win prob
+    win_prob = _matrix_from_data(data, labels, lambda v: v[1]/v[6]) # P2 win prob
     tie_prob = _matrix_from_data(data, labels, lambda v: v[2]/v[6])
 
     # mask = np.eye(win_prob.shape[0], dtype=bool)
-    mask = lower_triangle_mask(win_prob).T
+    # mask = lower_triangle_mask(win_prob).T
 
 
     annot = np.empty(win_prob.shape, dtype=object)
@@ -280,19 +281,19 @@ def plot_win_probability(ax, data: dict, labels: list[str], trials: int, scoring
             if i == j or np.isnan(win_prob[i, j]):
                 annot[i, j] = ''
             else:
-                annot[i, j] = f'{win_prob[i,j]*100:.1f}%\n({tie_prob[i,j]*100:.1f}%)'
+                annot[i, j] = f'{win_prob[i,j]*100:.0f}%\n({tie_prob[i,j]*100:.0f}%)'
 
     ax.clear()
     sns.heatmap(
         win_prob,
-        mask=mask,
+        # mask=mask,
         annot=annot,
         fmt='',
         cmap='coolwarm',
         center=0.5,
         xticklabels=labels,
         yticklabels=labels,
-        cbar_kws={"label": "Player 1 Win Probability"},
+        cbar_kws={"label": "Player 2 Win Probability"},
         ax=ax
     )
 
@@ -302,6 +303,6 @@ def plot_win_probability(ax, data: dict, labels: list[str], trials: int, scoring
 
     #plt.tight_layout()
     #os.makedirs(os.path.join(FIG_DIR, scoring), exist_ok=True)
-    #plt.savefig(f"{FIG_DIR}/{scoring}/rons_win_probability_{trials}.png", dpi=300, bbox_inches='tight')
+    plt.savefig(f"{FIG_DIR}/{scoring}/rons_win_probability_{scoring}_{trials}.png", dpi=300, bbox_inches='tight')
     #plt.show()
 
