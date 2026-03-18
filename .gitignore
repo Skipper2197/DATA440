@@ -1,7 +1,8 @@
 # Data forlders
 rons-game/data
 rons-game/figures
-
+!rons-game/figures/cards/rons_win_probability_cards_3000000.png
+!rons-game/figures/rounds/rons_win_probability_rounds_3000000.png
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
