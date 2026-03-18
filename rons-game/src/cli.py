@@ -37,4 +37,11 @@ def parse_args() -> argparse.Namespace:
         help='Print generated decks and scored matchup dictionary. Use for small number of trials'
     )
 
+    parser.add_argument(     # David's contribution
+        '--example_game',
+        action='store_true',
+        help="Plays an example of Penney's game using a player-prompted combination." \
+             "Intended for learning and doesn't add to number of decks."
+    )
+
     return parser.parse_args()

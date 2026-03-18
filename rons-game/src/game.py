@@ -1,6 +1,5 @@
 import numpy as np
 import os
-import numpy as np
 from tqdm import trange
 from typing import Literal
 from src.data_types import ScoringMode
@@ -132,3 +131,78 @@ def run_simulation(
 
     # Turn the array into a tuple
     return tuple(result_array)
+
+def example_game():  # David's contribution
+    print("\n=== Penney's Game (Example) ===\n")
+
+    # the player chooses a sequence, only being allowed the parameters of the game
+    while True:
+        p1_seq = input("Choose a 3-color sequence from a deck of cards, like RRB (R for Red, B for Black): ").strip().upper()
+        if len(p1_seq) == 3 and all(c in ('R','B') for c in p1_seq):
+            break
+        print("Invalid sequence, please try again. Use only R and B with a length of 3.")
+
+    # tuples the player's selection for the check process
+    p1_seq_tuple = tuple(p1_seq)
+    print(f"P1 (Player) chooses: {''.join(p1_seq_tuple)}\n")
+
+    # automatically creates and tuple-fies the player 2 selection
+    # if the computer generates the same selection as the player, it regenerates
+    p2_seq_tuple = tuple(np.random.choice(['R', 'B'], size=3))
+    while p1_seq_tuple == p2_seq_tuple:
+        p2_seq_tuple = tuple(np.random.choice(['R', 'B'], size=3))
+    print(f"P2 (Computer) chooses: {''.join(p2_seq_tuple)}\n")
+
+    deck = np.random.randint(0, 2, size=52)
+    print("\nA fresh deck of 52 cards has been generated and will be drawn from.")
+    print("When cards are drawn, the current sequence will be checked with each player's to score points.")
+
+    # breaks the current combinations into numbers for checking
+    s_p1 = tuple(1 if c == 'R' else 0 for c in p1_seq_tuple)
+    s_p2 = tuple(1 if c == 'R' else 0 for c in p2_seq_tuple)
+
+    window = []
+    print("\nStarting draws...\n")
+
+    p1_score = 0
+    p2_score = 0
+    
+    # this is the checking process by which cards are pulled & scores are tallied.
+    for i, card in enumerate(deck, start=1):
+        color = 'R' if card == 1 else 'B'
+        print(f"Draw #{i}: {color}")
+
+        window.append(card)
+        if len(window) > 3:  # always scoring by rounds, so unscored overflow cards must be removed
+            window.pop(0)
+
+        if len(window) == 3:
+            t = tuple(window)    # tupled for consistency with the player selections.
+            print(f"  Current window: {''.join('R' if x else 'B' for x in t)}")
+
+            if t == s_p1:
+                print("\n>>> P1 SCORES! Your sequence appeared first.\n")
+                p1_score = p1_score + 1
+                window.clear()             # the cards that were just scored are cleared from the window
+                continue
+            
+            if t == s_p2:
+                print("\n>>> P2 SCORES! The computer's sequence appeared first.\n")
+                p2_score = p2_score + 1
+                window.clear()             # the cards that were just scored are cleared from the window
+                continue
+
+        if p1_score > p2_score:
+            winner = "P1 (You)"
+        elif p1_score < p2_score:
+            winner = "P2 (Computer)"
+        else:
+            winner = "neither player! It's a tie"
+
+    print(f"\nAnd the winner is... {winner}!\n")
+    print(f"P1 Score: {p1_score}")
+    print(f"P2 Score: {p2_score}")
+
+    print('\nThis example is finished. Keep in mind that this scoring system is by "rounds". The "--scoring rounds" argument is used.\n')
+    print('If you want to score by cards (raw count of cards scored), then use the "--scoring cards" argument which is default, anyway.\n')
+    return
