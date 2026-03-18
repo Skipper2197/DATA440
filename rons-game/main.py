@@ -6,6 +6,7 @@ import time
 
 from src.cli import parse_args
 from src.generate_decks import generate_and_save_decks, generate_decks
+from src.game import example_game
 from src.utils import ensure_project_dirs, merge_results
 from src.in_out import load_data, save_data, load_decks, decks_exists, data_exists, save_decks
 from src.simulation import run_all_matchups_from_decks
@@ -21,6 +22,11 @@ from src.viz import (
 def main() -> None:
     ensure_project_dirs()
     args = parse_args()
+
+    if args.example_game:
+        example_game()
+        return
+
     DEBUG = args.debug
 
     start_total = time.time()
