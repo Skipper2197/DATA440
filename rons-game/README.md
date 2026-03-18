@@ -8,6 +8,11 @@ The scoring of the original Penney's Game is done by counting the number of "rou
 Player 1 (BBB) - Player 2 (RBR)     
 Card Sequence: "BRRBB<u>RBR</u>" -> Results in a Player 2 winning with a score of 8 being added to the overall score.
 
+``` 
+# To enhance your understanding of the game run the following code:
+uv run python -m main --example_game
+```
+
 ---
 
 # Project Motivation
@@ -26,6 +31,3 @@ uv run python -m main --trials 100000 --scoring rounds
 --regen -> Force regeneration of simulation data for given number of trials, even if cached in data folder
 --no-plots -> Do not display plots after simulating games
 ```
-
-# TODO
-- Be able to add 10 or 50 decks to the simulation
