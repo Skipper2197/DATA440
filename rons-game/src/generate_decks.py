@@ -34,3 +34,6 @@ def generate_and_save_decks(
 
     print(f'Saved {trials} decks → {path}')
     return
+
+def generate_decks(trials: int):
+    return np.random.randint(0,2, size=(trials, 52), dtype=np.uint8)

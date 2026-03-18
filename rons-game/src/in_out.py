@@ -29,7 +29,7 @@ def save_data(data: dict, trials: int, scoring: str) -> None:
         heatmap_file(trials, scoring),
         seq1=np.array(seq1, dtype='U3'),
         seq2=np.array(seq2, dtype='U3'),
-        values=np.array(values, dtype=np.float64),
+        values=np.array(values, dtype=object),
     )
 
     print(f'Saved matchup results → {heatmap_file(trials, scoring)}')
@@ -43,11 +43,14 @@ def load_data(trials: int, scoring: str) -> dict:
     if not os.path.exists(path):
         raise FileNotFoundError(f'No saved data found at {path}')
 
-    npz = np.load(path)
+    npz = np.load(path, allow_pickle=True)
 
     seq1 = npz['seq1']
     seq2 = npz['seq2']
     values = npz['values']
+
+    # ensure tuples
+    values = [tuple(v) for v in values]
 
     data = {}
     for i in range(len(seq1)):

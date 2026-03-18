@@ -34,7 +34,7 @@ def run_all_matchups_from_decks(
                 key = (seq_strings[i], seq_strings[j])
                 # Diagonal matchups do not make sense so store as nan
                 if i == j:
-                    results[key] = (np.nan,)*6
+                    results[key] = (np.nan,)*7
                 else:
                     # at key (s1,s2) get all stats
                     results[key] = score_matchup_from_decks(
@@ -93,10 +93,11 @@ def score_matchup_from_decks(
             ties += 1
 
     return (
-        p1 / trials,
-        p2 / trials,
-        ties / trials,
-        score_diff_sum / trials,
-        game_len_sum / trials,
-        rounds_sum / trials,
+        p1,
+        p2,
+        ties,
+        score_diff_sum,
+        game_len_sum,
+        rounds_sum,
+        trials
     )

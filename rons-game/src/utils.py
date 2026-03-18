@@ -24,3 +24,14 @@ def ensure_project_dirs() -> None:
         os.makedirs(d, exist_ok=True)
 
     return
+
+def merge_results(old: dict, new: dict) -> dict:
+    merged = {}
+
+    for key in old:
+        o = old[key]
+        n = new[key]
+
+        merged[key] = tuple(o[i] + n[i] for i in range(7))
+
+    return merged

@@ -43,9 +43,9 @@ def lower_triangle_mask(mat):
 # Score Difference Heatmap
 # -------------------------
 def plot_score_diff(ax, data: dict, labels: list[str], trials: int, scoring: str) -> None:
-    score_diff = _matrix_from_data(data, labels, lambda v: v[3])
-    game_len = _matrix_from_data(data, labels, lambda v: v[4])
-    rounds = _matrix_from_data(data, labels, lambda v: v[5])
+    score_diff = _matrix_from_data(data, labels, lambda v: v[3]/v[6])
+    game_len = _matrix_from_data(data, labels, lambda v: v[4]/v[6])
+    rounds = _matrix_from_data(data, labels, lambda v: v[5]/v[6])
 
     mask = lower_triangle_mask(score_diff).T
     annot = np.empty(score_diff.shape, dtype=object)
@@ -81,8 +81,8 @@ def plot_score_diff(ax, data: dict, labels: list[str], trials: int, scoring: str
 # Score Difference per Round
 # -------------------------
 def plot_score_diff_per_round(ax, data: dict, labels: list[str], trials: int, scoring: str) -> None:
-    score_diff = _matrix_from_data(data, labels, lambda v: v[3])
-    rounds = _matrix_from_data(data, labels, lambda v: v[5])
+    score_diff = _matrix_from_data(data, labels, lambda v: v[3]/v[6])
+    rounds = _matrix_from_data(data, labels, lambda v: v[5]/v[6])
     score_per_round = score_diff / np.maximum(rounds, 1e-9)
 
     mask = lower_triangle_mask(score_per_round).T
@@ -174,10 +174,6 @@ def plot_dominance_graph(ax, data: dict, labels: list[str], trials: int, scoring
 # -------------------------
 # Penney-Style Dominance Graph (Best Response)
 # -------------------------
-
-import networkx as nx
-import matplotlib.pyplot as plt
-import numpy as np
 
 def plot_penney_graph(ax, data:dict, trials:int, scoring:str):
 
@@ -271,8 +267,8 @@ def plot_win_probability(ax, data: dict, labels: list[str], trials: int, scoring
     '''
     Rows = seq1 (Player 1), Columns = seq2 (Player 2)
     '''
-    win_prob = _matrix_from_data(data, labels, lambda v: v[0]) # P1 win prob
-    tie_prob = _matrix_from_data(data, labels, lambda v: v[2])
+    win_prob = _matrix_from_data(data, labels, lambda v: v[0]/v[6]) # P1 win prob
+    tie_prob = _matrix_from_data(data, labels, lambda v: v[2]/v[6])
 
     # mask = np.eye(win_prob.shape[0], dtype=bool)
     mask = lower_triangle_mask(win_prob).T
