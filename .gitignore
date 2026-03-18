@@ -1,5 +1,12 @@
 # Data forlders
-rons-game/data
+rons-game/data/**/*
+!rons-game/data/decks
+!rons-game/data/results
+!rons-game/data/decks/decks_3000000.npz
+!rons-game/data/results/rounds_3000000.npz
+!rons-game/data/results/cards_3000000.npz
+
+
 rons-game/figures/**/*
 !rons-game/figures/cards
 !rons-game/figures/rounds
