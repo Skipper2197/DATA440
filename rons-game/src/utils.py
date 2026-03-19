@@ -26,6 +26,10 @@ def ensure_project_dirs() -> None:
     return
 
 def merge_results(old: dict, new: dict) -> dict:
+    '''
+    Allow for adding small amounts of decks to the simluation.
+    Add the current specified number of decks to the old number of decks
+    '''
     merged = {}
 
     for key in old:

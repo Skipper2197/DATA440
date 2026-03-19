@@ -28,7 +28,9 @@ def run_all_matchups_from_decks(
     n = len(sequences)
     total = n * n
 
+    # Set up a nice progress bar
     with tqdm(total=total, desc='Scoring all matchups') as pbar:
+        # For every combination of sequences
         for i, s1 in enumerate(sequences):
             for j, s2 in enumerate(sequences):
                 key = (seq_strings[i], seq_strings[j])
@@ -36,7 +38,7 @@ def run_all_matchups_from_decks(
                 if i == j:
                     results[key] = (np.nan,)*7
                 else:
-                    # at key (s1,s2) get all stats
+                    # At key (s1,s2) get all stats
                     results[key] = score_matchup_from_decks(
                         decks, s1, s2, scoring
                     )
@@ -84,7 +86,7 @@ def score_matchup_from_decks(
         game_len_sum += gl
         rounds_sum += r
 
-        # track win or tie
+        # Track win or tie
         if result == 1:
             p1 += 1
         elif result == 2:

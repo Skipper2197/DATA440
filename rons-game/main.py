@@ -14,7 +14,6 @@ from src.viz import (
     plot_score_diff,
     plot_score_diff_per_round,
     plot_win_vs_score_diff,
-    plot_dominance_graph,
     plot_win_probability,
     plot_penney_graph,
 )
@@ -27,7 +26,8 @@ def main() -> None:
         example_game()
         return
 
-    DEBUG = args.debug
+    # Allow for degub statements
+    # DEBUG = args.debug
 
     start_total = time.time()
 
@@ -38,38 +38,38 @@ def main() -> None:
     print(f'Generated {len(labels)} sequences in {time.time() - start_sequences:.2f}s')
 
     # --- PHASE 1: LOAD OR GENERATE DECKS ---
-    start_phase1 = time.time()
     results_exist = data_exists(args.trials, args.scoring)
-    decks_exist_flag = decks_exists(args.trials)
 
     current_total = args.trials
 
+    # If the results exist and --regen not specified
     if results_exist and not args.regen:
         start_load = time.time()
         print(f'Loading matchup results for {args.trials} trials')
         data = load_data(args.trials, args.scoring)
         print(f'Loaded matchup results in {time.time() - start_load:.2f}s')
     else:
+        # Generate and save raw decks and scored decks
         print(f'Generating {args.trials} decks...')
         decks = generate_decks(args.trials)
         save_decks(decks, current_total)
         data = run_all_matchups_from_decks(decks, sequences, args.scoring)
         save_data(data, current_total, args.scoring)
 
+    # Get user input to add small number of decks
     while True:
         print(f'\nCurrent decks: {current_total}')
 
-        start_viz = time.time()
+        # If --no-plots specified
         if args.no_plots:
             print('Skipping plot generation (--no-plots specified)')
             print(f'Total execution time: {time.time() - start_total:.2f}s')
         else:
             plots = [
-                # partial(plot_score_diff, data=data, labels=labels, trials=args.trials, scoring=args.scoring),
-                # partial(plot_score_diff_per_round, data=data, labels=labels, trials=args.trials, scoring=args.scoring),
-                # partial(plot_win_vs_score_diff, data=data, trials=args.trials, scoring=args.scoring),
+                partial(plot_score_diff, data=data, labels=labels, trials=args.trials, scoring=args.scoring),
+                partial(plot_score_diff_per_round, data=data, labels=labels, trials=args.trials, scoring=args.scoring),
+                partial(plot_win_vs_score_diff, data=data, trials=args.trials, scoring=args.scoring),
                 partial(plot_win_probability, data=data, labels=labels, trials=current_total, scoring=args.scoring),
-                # partial(plot_dominance_graph, data=data, labels=labels, trials=args.trials, scoring=args.scoring),
                 # partial(plot_penney_graph, data=data, trials=args.trials, scoring=args.scoring)
             ]
             
@@ -130,10 +130,12 @@ def main() -> None:
             update_plot()
             plt.show()
 
+        # Ask for a number of decks to add or quit
         user_input = input(f'Add decks or quit: ').strip().lower()
         if user_input == 'quit':
             break
 
+        # Ensure input is a number
         if not user_input.isdigit():
             print('Invalid input. Must be an integer...')
             continue
@@ -141,14 +143,17 @@ def main() -> None:
         additional = int(user_input)
         print(f'Running {additional} new decks...')
 
+        # Generate the additonal decks
         new_decks = generate_decks(additional)
 
+        # Calculate new data and add it to the results of the original simulation
         start = time.time()
         new_data = run_all_matchups_from_decks(new_decks, sequences, args.scoring)
 
         data = merge_results(data, new_data)
         current_total += additional
 
+        # Save the new merged data
         save_data(data, current_total, args.scoring)
 
         print(f'Update completed in {time.time() - start:.2f} seconds')

@@ -29,7 +29,8 @@ def _matrix_from_data(
             key = (s1, s2)
             if key in data:
                 mat[i, j] = value_fn(data[key])
-    # print(mat)
+
+    # Once extacted, return the data matrix
     return mat
 
 
@@ -74,8 +75,7 @@ def plot_score_diff(ax, data: dict, labels: list[str], trials: int, scoring: str
     ax.set_title('Score Differential\n(Game Length | Rounds)')
     ax.set_xlabel('Player 2 Sequence')
     ax.set_ylabel('Player 1 Sequence')
-    # os.makedirs(os.path.join(FIG_DIR, scoring), exist_ok=True)
-    # plt.savefig(f'{FIG_DIR}/{scoring}/rons_score_diff_{trials}.png', dpi=300, bbox_inches='tight')
+    plt.savefig(f'{FIG_DIR}/{scoring}/rons_score_diff_{trials}.png', dpi=300, bbox_inches='tight')
 
 
 # -------------------------
@@ -105,8 +105,7 @@ def plot_score_diff_per_round(ax, data: dict, labels: list[str], trials: int, sc
     ax.set_title('Average Score Differential per Round')
     ax.set_xlabel('Player 2 Sequence')
     ax.set_ylabel('Player 1 Sequence')
-    # os.makedirs(os.path.join(FIG_DIR, scoring), exist_ok=True)
-    # plt.savefig(f'{FIG_DIR}/{scoring}/rons_score_diff_per_round_{trials}.png', dpi=300, bbox_inches='tight')
+    plt.savefig(f'{FIG_DIR}/{scoring}/rons_score_diff_per_round_{trials}.png', dpi=300, bbox_inches='tight')
 
 
 # -------------------------
@@ -137,40 +136,37 @@ def plot_win_vs_score_diff(ax, data: dict, trials: int, scoring: str) -> None:
     ax.set_ylabel('Avg Score Differential (seq1 - seq2)')
     ax.set_title(f'Win Probability vs Score Differential ({scoring}, {trials:,})')
     ax.figure.colorbar(scatter, ax=ax, label='Avg Rounds')
-    # plt.tight_layout()
-    # os.makedirs(os.path.join(FIG_DIR, scoring), exist_ok=True)
-    # plt.savefig(f'{FIG_DIR}/{scoring}/rons_win_vs_score_diff_{trials}.png', dpi=300, bbox_inches='tight')
+    plt.savefig(f'{FIG_DIR}/{scoring}/rons_win_vs_score_diff_{trials}.png', dpi=300, bbox_inches='tight')
 
 
 # -------------------------
 # Dominance Graph
 # -------------------------
-def plot_dominance_graph(ax, data: dict, labels: list[str], trials: int, scoring: str) -> None:
-    G = nx.DiGraph()
-    G.add_nodes_from(labels)
+# def plot_dominance_graph(ax, data: dict, labels: list[str], trials: int, scoring: str) -> None:
+#     G = nx.DiGraph()
+#     G.add_nodes_from(labels)
 
-    for i, s1 in enumerate(labels):
-        for j, s2 in enumerate(labels):
-            if i != j:
-                p1_win = data[(s1, s2)][0]
-                score_diff = data[(s1, s2)][3]
-                if p1_win > 0.5 and score_diff < 0:
-                    G.add_edge(s1, s2)  # winner -> loser
+#     for i, s1 in enumerate(labels):
+#         for j, s2 in enumerate(labels):
+#             if i != j:
+#                 p1_win = data[(s1, s2)][0]
+#                 score_diff = data[(s1, s2)][3]
+#                 if p1_win > 0.5 and score_diff < 0:
+#                     G.add_edge(s1, s2)  # winner -> loser
 
-    ax.clear()
-    nx.draw(
-        G,
-        nx.circular_layout(G),
-        with_labels=True,
-        node_size=2000,
-        node_color='lightblue',
-        arrowsize=15,
-        ax=ax
-    )
+#     ax.clear()
+#     nx.draw(
+#         G,
+#         nx.circular_layout(G),
+#         with_labels=True,
+#         node_size=2000,
+#         node_color='lightblue',
+#         arrowsize=15,
+#         ax=ax
+#     )
 
-    ax.set_title(f'Strategy Dominance Graph ({scoring}, {trials})')
-    # os.makedirs(os.path.join(FIG_DIR, scoring), exist_ok=True)
-    # plt.savefig(f'{FIG_DIR}/{scoring}/rons_dominance_graph_{trials}.png', dpi=300, bbox_inches='tight')
+#     ax.set_title(f'Strategy Dominance Graph ({scoring}, {trials})')
+#     plt.savefig(f'{FIG_DIR}/{scoring}/rons_dominance_graph_{trials}.png', dpi=300, bbox_inches='tight')
 
 # -------------------------
 # Penney-Style Dominance Graph (Best Response)
@@ -256,9 +252,7 @@ def plot_penney_graph(ax, data:dict, trials:int, scoring:str):
 
     ax.set_title('Penney\'s Game - Best Counter Strategy')
     ax.axis('off')
-    # plt.tight_layout()
-    # plt.savefig(f'{FIG_DIR}/{scoring}/rons_best_response_{trials}.png', dpi=300, bbox_inches='tight')
-    # plt.show()
+    plt.savefig(f'{FIG_DIR}/{scoring}/rons_best_response_{trials}.png', dpi=300, bbox_inches='tight')
 
 
 # -------------------------

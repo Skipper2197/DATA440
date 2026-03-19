@@ -28,6 +28,13 @@ uv run python -m main --trials 100000 --scoring rounds
 # Example flags for running:
 --trials -> Number of trials per matchup (default: 100000)
 --scoring -> Scoring method: cards or rounds
---regen -> Force regeneration of simulation data for given number of trials, even if cached in data folder
+--regen -> Force regeneration of scored decks, even if cached in data/results folder
 --no-plots -> Do not display plots after simulating games
+--debug -> Print debug points during run (only inteded for debugging)
+--example_game -> Run through one simulation of the game with user input to understand the game
 ```
+
+# Our Findings
+Our resutls are consistent with the orginal findings of Penney's Game. That is given Player 1's sequence, flip the middle card (R->B or B->R) and place it at the beginning of the sequence. For example Player 1 choses RBB, Player 2 should chose RRB     
+
+These are true regardless of the version of the game you play (rounds vs cards). Playing the cards scoring version, Player 2 has an increased chance of winning due to the fact that the probability of tieing in this version, comapred to rounds scoring, is way lower.

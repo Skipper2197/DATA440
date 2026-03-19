@@ -26,22 +26,27 @@ def simulate_rons_game(
     :rtype: tuple[Literal[1, 2, 0], int, int, int, int]
     '''
 
+    # Code sequences to 1s or 0s
     s1 = tuple(1 if c == 'R' else 0 for c in seq1)
     s2 = tuple(1 if c == 'R' else 0 for c in seq2)
 
+    # Tracker variables
     score1 = score2 = 0
+    # Card count
     i = 0
     num_rounds = 0
 
+    # For a 52 card deck...
     while i < 52:
         window = []
         cards = 0
-
+        # Run one game within the 52 card deck
         while i < 52:
             window.append(deck[i])
             cards += 1
             i += 1
 
+            # Only track sequences of length 3
             if len(window) > 3:
                 window.pop(0)
 
@@ -55,27 +60,7 @@ def simulate_rons_game(
                     score2 += cards if scoring == 'cards' else 1
                     num_rounds += 1
                     break
-            # if len(window) == 3:
-            #     t = tuple(window)
-            #     p1_hit = (t == s1)
-            #     p2_hit = (t == s2)
-
-            #     if p1_hit and p2_hit:
-            #         # Decide how to handle simultaneous hits. 
-            #         # Usually, you split the point or it's a draw for that round.
-            #         score1 += 0.5 
-            #         score2 += 0.5
-            #         num_rounds += 1
-            #         break 
-            #     elif p1_hit:
-            #         score1 += cards if scoring == 'cards' else 1
-            #         num_rounds += 1
-            #         break
-            #     elif p2_hit:
-            #         score2 += cards if scoring == 'cards' else 1
-            #         num_rounds += 1
-            #         break
-
+        # If there are fewer than 3 cards left in the deck, break
         if 52 - i < 3:
             break
 
