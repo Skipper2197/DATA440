@@ -278,6 +278,7 @@ def plot_win_probability(ax, data: dict, labels: list[str], trials: int, scoring
                 annot[i, j] = f'{win_prob[i,j]*100:.0f}%\n({tie_prob[i,j]*100:.0f}%)'
 
     ax.clear()
+    # rev_labels = labels.reverse()
     sns.heatmap(
         win_prob,
         # mask=mask,
@@ -285,8 +286,8 @@ def plot_win_probability(ax, data: dict, labels: list[str], trials: int, scoring
         fmt='',
         cmap='coolwarm',
         center=0.5,
-        xticklabels=labels,
-        yticklabels=labels,
+        xticklabels=labels[::-1],
+        yticklabels=labels[::-1],
         cbar_kws={"label": "Player 2 Win Probability"},
         ax=ax
     )
